@@ -1,0 +1,67 @@
+---
+title: "aer13_ReplicationAssignment"
+author: "Abby_Robinson"
+date: "11/10/2021"
+output: html_document
+---
+```{r}
+library(curl)
+```
+
+```{r}
+f <- curl("https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/Adelpha2016.csv")
+count.data  <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+count.data
+```
+Summary Stats
+```{r}
+attacks <- subset(count.data, attacks >= "1", drop = FALSE)
+attacks
+
+aggregate(x= attacks$attacks, by= list(attacks$species), FUN=sum)
+
+ag <- aggregate(x= attacks$attacks, by= list(attacks$day), FUN=sum)
+ag
+```
+attacks by species by day 
+
+```{r}
+eva <- subset(count.data, species == "evarete", drop = FALSE)
+aggregate(x= eva$attacks, by= list(eva$day), FUN=sum)
+```
+
+```{r}
+iph <- subset(count.data, species == "iphiclus", drop = FALSE)
+aggregate(x= iph$attacks, by= list(iph$day), FUN=sum)
+```
+
+```{r}
+leu <- subset(count.data, species == "leucopthalma", drop = FALSE)
+aggregate(x= leu$attacks, by= list(leu$day), FUN=sum)
+```
+
+```{r}
+ser <- subset(count.data, species == "serpa", drop = FALSE)
+aggregate(x= ser$attacks, by= list(ser$day), FUN=sum)
+```
+##figure 1a. of the paper is the proportion of facsimilies attacks, so the number of attacks/500 (the sample size)
+
+
+Let's figure out all our attack totals! I think we maybe need to feed the survival scores into the survival package in order for this to work....
+
+calculate survival scores per day and try to load them into the survival package? 
+
+Things to do: 
+
+1. general linear model with Poisson distribution
+########Rubiaceae-feeding Adelpha iphiclus was attacked significantly less compared to the other three phenotypes, where ∗P < 0.03 for all comparisons 
+
+3. Using a general linear model with Pois- son distribution, we found that A. iphiclus was attacked signifi- cantly less than the other three facsimile phenotypes (z-value = 2.399, d.f. = 399, P = 0.0164 vs J. evarete; z-value = 2.579, d.f. = 399, P = 0.0058 vs A. serpa; z-value = 2.306, d.f. = 399, P = 0.0211 vs A. leucopthalma). 
+
+2. Survivorship curves show similar results where A. iphiclus has the highest overall survivorship compared to the other butterfly phenotypes (∗P < 0.02; Cox proportional-hazards regression model). Adelpha serpa, A. leucopthalma, and J. evarete survivorship did not differ significantly from one another (all P > 0.7, marked with NS)
+
+
+
+
+
+
