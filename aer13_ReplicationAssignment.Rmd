@@ -23,6 +23,7 @@ aggregate(x= attacks$attacks, by= list(attacks$species), FUN=sum)
 ag <- aggregate(x= attacks$attacks, by= list(attacks$day), FUN=sum)
 ag
 ```
+
 attacks by species by day 
 
 ```{r}

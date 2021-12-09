@@ -20,6 +20,19 @@ data
 ```
 
 ```{r}
+eva <- subset(data, species == "evarete", drop = FALSE)
+eva
+
+chisq.test(table(eva$attacks, eva$day))
+table(eva$attacks, eva$day)
+
+survdiff(Surv(day, attacks) ~ day, data=eva)
+pairwise_survdiff(Surv(day, attacks) ~ day, p.adjust.method = "BH",
+     data = eva)
+```
+
+
+```{r}
 attacks <- subset(data, attacks >= "1", drop = FALSE)
 attacks
 table(attacks$attacks, attacks$species)
@@ -30,12 +43,30 @@ model <- survfit(Surv(day, day+1, attacks) ~ species, data=data)
 model
 summary(model)
 ```
+Soooo p-values are different but everything this is supposed to be significant is. This is an analysis that produces output similar to what she presents in the paper. In the paper, she also talks about how 15 observations were automatically eliminated by the software, but nothing is being automatically eliminated in my analysis, so this might also be contributing to the different p-values. 
+```{r}
+survdiff(Surv(day, attacks) ~ species, data=data)
+pairwise_survdiff(Surv(day, attacks) ~ species, p.adjust.method = "BH",
+     data = data)
+```
 
 ```{r}
-m <- survfit(Surv(day, day+1, attacks) ~ species, data=data)
-m
-summary(m)
+coxph(Surv(day, attacks) ~ species, data=data)
+
 ```
+
+
+
+```{r}
+install.packages('RVAideMemoire')
+library(RVAideMemoire)
+library(survival)
+library(survminer)
+library(multcomp)
+###soo R isn't recognizing the surv.multcomp function and I don't know why
+surv.multicomp(Surv(day, attacks) ~ species,data = data, strata = NULL, type = "coxph", p.method = "fdr")
+```
+
 
 ```{r}
 plot(model, xlab="Time (days)", 
@@ -46,6 +77,10 @@ plot(model, xlab="Time (days)",
 
 ```{r}
 library(tayloRswift)
+library(ggpubr)
+
+compare_means(day ~ species,  data = data, method = "anova")
+
 p <- ggsurvplot(fit = model, 
            palette = c("taylorRed"),
            xaxt = "n",
@@ -54,7 +89,8 @@ p <- ggsurvplot(fit = model,
            ylim = c(0.85, 1.0), 
            xlim = c(1, 5),  
            data = data, 
-           axes = FALSE)
+           axes = FALSE, 
+           label = "map.signif")
 
 p
 
@@ -62,8 +98,21 @@ p
 p$plot <- p$plot + 
                   scale_x_continuous(breaks = c(1,2,3,4,5),
                                      labels = c(0,1,2,3,4))
+
+
 p$plot
 ```
+```{r}
+compare_means(ipiclus ~ everete,  data = data, method = "anova")
+
+# Visualize: Specify the comparisons you want
+my_comparisons <- list( c("0.5", "1"), c("1", "2"), c("0.5", "2") )
+ggboxplot(ToothGrowth, x = "dose", y = "len",
+          color = "dose", palette = "jco")+ 
+  stat_compare_means(comparisons = my_comparisons)+ # Add pairwise comparisons p-value
+  stat_compare_means(label.y = 50)     # Add global p-value
+```
+
 
 ```{r}
 library(tayloRswift)
@@ -74,10 +123,11 @@ p <- ggsurvplot(fit = model,
            ylim = c(0.85, 1.0), 
            xlim = c(1, 5),  
            data = data, 
-           axes = FALSE)
+           axes = FALSE, 
+           linetype = 8)
 
 ##use Red (Taylor's Version) color palette 
-p$plot <- p$plot + scale_color_taylor(palette = "taylorRed")
+p$plot <- p$plot + scale_color_taylor(palette = "lover")
 p$plot <- p$plot + theme_minimal()
 p$plot
 
@@ -88,4 +138,8 @@ p$plot <- p$plot +
 p$plot
 
 
+```
+
+```{r}
+library(tayloRswift)
 ```

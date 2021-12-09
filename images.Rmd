@@ -1,0 +1,89 @@
+---
+title: "practice"
+author: "Abby_Robinson"
+date: "12/8/2021"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(ggimage)
+library(dplyr)
+
+set.seed(1234)
+
+d <- data.frame(x = -1, y = 1, image = sample(c("https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/iphiclus.png"), size=10, replace = TRUE)
+)
+
+
+img <- list.files(system.file("extdata", package="ggimage"),
+                  pattern="png", full.names=TRUE)
+```
+
+```{r}
+df = data.frame(
+  group = c("evarete", "iphiclus", "serpa", "leucopthalma"),
+  value = c(0.104, 0.060, 0.112, 0.102),
+  image = c("https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/evarete.jpeg", "https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/iphiclus.jpeg", "https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/serpa.png", "https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/leucopthalma.jpeg") )
+
+
+ggplot(df, aes(group, value)) + 
+  geom_col() + 
+  geom_image(aes(image=image, y = value), size=.2)
+```
+
+
+```{r}
+library("ggplot2")
+library("ggimage")
+set.seed(12345)
+d <- data.frame(x = -1,
+                y = 1,
+                image = sample(c("https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/iphiclus.png"),
+                               size=10, replace = TRUE)
+)
+
+ggplot(d, aes(x, y)) + geom_image(aes(image=image), size=.1)
+```
+
+```{r}
+no.zero <- subset(data, attacks >= "1", drop = FALSE)
+a <- table(no.zero$attacks, no.zero$species)
+rates <- (a/500)*100
+rates
+```
+
+```{r}
+glm <- glm(data = count.data, attacks ~ species + day, family = "poisson")
+bar <- confint(glm)
+bar
+
+confidence.min <- c(-1.6439809, -1.0104353, -0.3035894, -0.4071284)
+confidence.max <- c(-0.8645489)
+```
+
+```{r}
+name <- c("evarete", "iphiclus", "serpa", "leucopthalma") 
+total.attacks <- c(52, 30, 56, 51) 
+rates <- cbind((total.attacks/500))
+rates
+
+rate.data <- data.frame(name, total.attacks, rates)
+rate.data
+```
+
+```{r}
+iph <- subset(rate.data, name  == "iphiclus", drop = FALSE)
+
+b <- ggplot(rate.data, aes(x= name, y=rates)) 
+b <- b + geom_bar(stat="identity", color="black",fill=c("grey", "grey27", "grey", "grey"))
+b <- b + geom_text(data = iph, label = "*", size = 20)
+b <- b + theme_minimal()
+b <- b + theme_classic()
+b <- b + xlab("Facsimile phenotype")
+b <- b + ylab("Proportion of facsimiles attacked")
+b <- b + scale_x_discrete(limits =  c("evarete", "iphiclus", "serpa", "leucopthalma"), labels = c("evarete" = "Junonia (control)","iphiclus" = "A. iphiclus", "serpa" = "A. serpa",  "leucopthalma" = "A. leucopthalma") )
+b <- b + scale_y_continuous(breaks = seq(0.0, 0.12, 0.02))
+b
+
+```
