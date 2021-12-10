@@ -1,7 +1,7 @@
 ---
 title: "Replication Assignment"
 author: "Abby Robinson"
-date: "11/30/2021"
+date: "12/10/2021"
 output: rmdformats::material
 ---
 
@@ -9,9 +9,9 @@ output: rmdformats::material
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Replicating Results from Complex dynamics underlie the evolution of imperfect wing pattern convergence in butterflies
+# Replicating Results from "Complex dynamics underlie the evolution of imperfect wing pattern convergence in butterflies" 
 
-<p class="text-primary">In this module, I will walk through replicating the summary statistics, Generalize Linear Model and Survival analyses in Finkbeiner et al. 2017 and recreating Figure 1 of the aforementioned paper.</p>
+<p class="text-primary">In this module, I will walk through replicating the summary statistics, Generalize Linear Model and Survival analyses and recreating Figure 1 in Finkbeiner et al. 2017.</p>
 
 # Packages
 
@@ -30,20 +30,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **For Reproducing Figures**
 [{ggplot2}](https://www.rdocumentation.org/packages/ggplot2/versions/3.3.5), 
-[{ggimage}](https://www.rdocumentation.org/packages/ggmap/versions/3.0.0/topics/ggimage)
-
-
-**Packages for Various other Analyses**
-[{dplyr}](https://www.rdocumentation.org/packages/dplyr/versions/0.7.8), 
-[{car}](https://cran.r-project.org/web/packages/car/car.pdf)
+[{ggimage}](https://www.rdocumentation.org/packages/ggmap/versions/3.0.0/topics/ggimage),
+[{dplyr}](https://www.rdocumentation.org/packages/dplyr/versions/0.7.8)
 
 # Introduction 
 
-The genus *Adelpha* is a large and diverse butterfly lineages that inhabits the Neotropics and exhibits widespread convergent evolution in wing patterns. In this paper, [Finkbeiner et al. 2017](https://onlinelibrary.wiley.com/doi/full/10.1111/evo.13165) conducts field predation experiments in Costa Rica using artificial butterfly facsimiles to assess whether this widespread convergence is a product of selection for mimicry. 
+The genus *Adelpha* is a large and diverse butterfly lineage that inhabits the Neotropics and exhibits widespread convergent evolution in wing patterns. In this paper, [Finkbeiner et al. 2017](https://onlinelibrary.wiley.com/doi/full/10.1111/evo.13165) conducts field predation experiments in Costa Rica using artificial butterfly facsimiles to assess whether this widespread convergence is a product of selection for mimicry. 
 
 They hypothesize that the putative palatable mimic species *Adelpha serpa* would benefit (in the form of low predation rates) by resembling the putative, chemically-defended model species, *Adelpha iphiclus* 
 
-##Dowload the Data 
+# Dowload the Data 
 
 To replicate the analyses from this paper, we will need to download two different datasets; one is count data, which will allow us to run a generalized linear model with Poisson distribution, and the other is binomial data, which will allow is to run the survival analyses. 
 
@@ -69,7 +65,7 @@ binomial.data  <- read.csv(b, header = TRUE, sep = ",", stringsAsFactors = FALSE
 head(binomial.data)
 ```
 
-At first glance these datasets look the same, but the binomial dataset is substantially longer 
+At first glance these data sets look the same, but the binomial data set is substantially longer because it accounts for all facsimiles present at each study site. This can change the degrees of freedom, which can affect the significance of our analyses. 
 
 ```{r}
 length(count.data$attacks)
@@ -79,11 +75,11 @@ length(binomial.data$attacks)
 
 # Summary Statistics 
 
-In her 2017 publication, Susan Finkbeiner reports, "Our primary predation experiment tested whether Adelpha species with locally convergent wing patterns experience reduced preda- tion rates compared to novel and known palatable butterfly prey. Two-thousand total artificial butterfly facsimiles were used in this study, which yielded 189 combined avian attacks: 52 on Junonia (10.4% attacked), 30 on A. iphiclus (6.0% attacked), 56 on A. serpa (11.2% attacked), and 51 on A. leucopthalma (10.2% at- tacked, Fig. 1A)." 
+In her 2017 publication, Susan Finkbeiner reports, "Our primary predation experiment tested whether Adelpha species with locally convergent wing patterns experience reduced predation rates compared to novel and known palatable butterfly prey. Two-thousand total artificial butterfly facsimiles were used in this study, which yielded 189 combined avian attacks: 52 on Junonia (10.4% attacked), 30 on A. iphiclus (6.0% attacked), 56 on A. serpa (11.2% attacked), and 51 on A. leucopthalma (10.2% at- tacked, Fig. 1A)." 
 
 I will replicated these summary statistics below. 
 
-We can use the subset function to subset only the data that represent attacks on butterfly facsimiles. This can be useful when working with large datasets like this that contains a lot of zeros. We can also use the aggregate function to look at the total attacks on each species 
+We can use the subset function to subset only the data that represent attacks on butterfly facsimiles. This can be useful when working with large data sets like this that contains a lot of zeros. We can also use the aggregate function to look at the total attacks on each species 
 
 ```{r}
 attacks <- subset(count.data, attacks >= "1", drop = FALSE)
@@ -92,7 +88,7 @@ species <- aggregate(x= attacks$attacks, by= list(attacks$species), FUN=sum)
 species #summarized attacks on all four species across the 4-day experiment 
 ```
 
-We can also calculate the attack rates on each species by dividing the total number of attacks by the total number of facsimilies, which is 500 for each species
+We can also calculate the attack rates on each species by dividing the total number of attacks by the total number of facsimiles, which is 500 for each species. 
 
 To calculate the over all attack rate, we can first confirm that both our count and binomial data yield the same attack total 
 
@@ -123,13 +119,13 @@ rate.data
 Another way to calculate the attack rates for each species: 
 
 ```{r}
-no.zero <- subset(count.data, attacks >= "1", drop = FALSE)
+no.zero <- subset(binomial.data, attacks >= "1", drop = FALSE)
 a <- table(no.zero$attacks, no.zero$species)
 rates <- (a/500)*100
 rates
 ```
 
-We can also use the subset and aggregate functions to list the attacks totals for each species by day 
+We can also use the subset and aggregate functions to list the attack totals for each species by day 
 
 ```{r}
 eva <- subset(count.data, species == "evarete", drop = FALSE)
@@ -171,54 +167,59 @@ total.data  <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 head(count.data) #we can use the head function to view the first 10 rows in the dataset 
 ```
 
-overall glm with all comparisons as reported in the legend of Figure 1A. 
+overall glm with all comparisons and 95% confidence intervals as reported in the legend of Figure 1A. 
+
 ```{r}
 glm <- glm(data = total.data, attacks ~ species, family = "poisson")
 summary(glm)
 confint(glm)
 ```
 
-She then reported what seemed to be pairwise glms, but I couldn't find a post hoc test or anything that would give me pairwise comparisons in a glm so I subsetted the specific species and ran additional glms for each. 
+She then reported what seemed to be pairwise glms, but I couldn't find a post hoc test or anything that would give me pairwise comparisons in a glm so I subsetted each species comparison using the subset function and ran additional glms for each, which allowed me to recreate her results. 
 
-In her paper, Finkbeiner reports, "We found substantial evidence that attack rates vary between the facsimile phenotypes. Using a general linear model with Pois- son distribution, we found that A. iphiclus was attacked signifi- cantly less than the other three facsimile phenotypes (z-value = 2.399, d.f. = 399, P = 0.0164 vs J. evarete; z-value = 2.579, d.f. = 399, P = 0.0058 vs A. serpa; z-value = 2.306, d.f. = 399, P = 0.0211 vs A. leucopthalma). The remaining facsimile phe-
+In her paper, Finkbeiner reports, "We found substantial evidence that attack rates vary between the facsimile phenotypes. Using a general linear model with Poisson distribution, we found that A. iphiclus was attacked significantly less than the other three facsimile phenotypes (z-value = 2.399, d.f. = 399, P = 0.0164 vs J. evarete; z-value = 2.579, d.f. = 399, P = 0.0058 vs A. serpa; z-value = 2.306, d.f. = 399, P = 0.0211 vs A. leucopthalma). The remaining facsimile phe-
 notypes, J. evarete, A. serpa, and A. leucopthalma, were attacked at equal rates (all P > 0.6)." 
 
-evarete-iphiclus comparison 
+GLMs that yield significant results: 
+
+  1. evarete-iphiclus comparison 
 ```{r}
 ei <- subset(total.data, species %in% c("evarete", "iphiclus"), drop = FALSE)
 glm1 <- glm(data = ei, attacks ~ species, family = "poisson")
 summary(glm1)
 ```
 
-serpa-iphiclus comparison 
+  2. serpa-iphiclus comparison 
 ```{r}
 si <- subset(total.data, species %in% c("serpa", "iphiclus"), drop = FALSE)
 glm2 <- glm(data = si, attacks ~ species, family = "poisson")
 summary(glm2)
 ```
 
-leucopthalma-iphiclus comparison 
+  3. leucopthalma-iphiclus comparison 
 ```{r}
 li <- subset(total.data, species %in% c("leucopthalma", "iphiclus"), drop = FALSE)
 glm3 <- glm(data = li, attacks ~ species, family = "poisson")
 summary(glm3)
 ```
 
-leucopthalma-evarete comparison 
+GLMs that do not yield significant results: 
+
+  1. leucopthalma-evarete comparison 
 ```{r}
 le <- subset(total.data, species %in% c("leucopthalma", "evarete"), drop = FALSE)
 glm4 <- glm(data = le, attacks ~ species, family = "poisson")
 summary(glm4)
 ```
 
-leucopthalma-serpa comparison 
+  2. leucopthalma-serpa comparison 
 ```{r}
 ls <- subset(total.data, species %in% c("leucopthalma", "serpa"), drop = FALSE)
 glm5 <- glm(data = ls, attacks ~ species, family = "poisson")
 summary(glm5)
 ```
 
-evarete-serpa comparison 
+  3. evarete-serpa comparison 
 ```{r}
 es <- subset(total.data, species %in% c("evarete", "serpa"), drop = FALSE)
 glm6 <- glm(data = es, attacks ~ species, family = "poisson")
@@ -226,9 +227,9 @@ summary(glm6)
 ```
 
 # Figure 1(A)
-I struggled with creating the error bars and inserting the species images in this graph. I calculated the 95% confidence intervals associated with the glm above. But this analysis was performed on the attack totals, not the attck rates/proportions. I am not sure if she made a separate dataset to run a glm on attack rates, but (to the best of my understanding) if she did make a new dataset with proportions, it would no longer be a Poisson distribution. 
+I struggled with creating the error bars and inserting the species images in this graph. I calculated the 95% confidence intervals associated with the glm above. But this analysis was performed on the attack totals, not the attack rates/proportions, which are presented in the figure below. I am not sure if she made a separate data set to run a glm on attack rates, but (to the best of my understanding) if she did make a new dataset with proportions, it would no longer be a Poisson distribution. 
 
-Also, in order to use ggimage, I had to make a new dataset, which I think make it more difficult to add in the error bars. 
+Also, in order to use ggimage, I had to make a new data set, which I think make it more difficult to add in the error bars. 
 
 Here is a screenshot of the original figure: 
 ![image](https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/Screen%20Shot%202021-12-09%20at%201.48.18%20PM.png)
@@ -252,27 +253,44 @@ rate.data <- data.frame(name, total.attacks, rates, image)
 rate.data
 ```
 
-The next preliminary step is creating a subsetting object of just iphiclus. we will use this in the ggplot code to insert an * to represent that our analyses indicate that attack rates on iphiclus are significantly lower. 
+The next preliminary step is creating a subsetted object of just iphiclus. We will use this in the ggplot code to insert an * to represent that our analyses indicate that attack rates on iphiclus are significantly lower. 
 ```{r}
 iph <- subset(rate.data, name  == "iphiclus", drop = FALSE)
 ```
 
+and finally, we can create the figure using ggplot! 
 ```{r}
 b <- ggplot(rate.data, aes(x=name, y=rates)) 
 
 b <- b + geom_col() 
+#geom_col() is necessary for inserting the images with geom_image 
 
 b <- b + geom_bar(stat="identity", color="black",fill=c("grey", "grey27", "grey", "grey"))
+#geom_bar creates the bar plot, the commands "color=" and "fill=" allow you to change the color of the bar outlines and fill, respectively
 
-b <- b + geom_image(aes(image=image, y = 0.02), size=.2) ##y= specifies the location of the image                                                             along the y axis 
+b <- b + geom_image(aes(image=image, y = 0.02), size=.2) 
+##y= specifies the location of the image along the y axis 
+
 b <- b + geom_text(data = iph, label = "*", size = 20)
+#use geom_text to insert the * above the iphiclus column 
+
 b <- b + theme_minimal()
 b <- b + theme_classic()
+#this code removes the automated background in the ggplot, which allows us to match the theme of the grpah presented in the paper
+
 b <- b + xlab("Facsimile phenotype")
 b <- b + ylab("Proportion of facsimiles attacked")
+#use xlab and ylab to label the axis 
+
 b <- b + scale_x_discrete(limits =  c("evarete", "iphiclus", "serpa", "leucopthalma"), labels = c("evarete" = "Junonia (control)","iphiclus" = "A. iphiclus", "serpa" = "A. serpa",  "leucopthalma" = "A. leucopthalma") )
-b <- b + scale_y_continuous(breaks = seq(0.0, 0.12, 0.02)) ##seq() command specifies seq(to, from,                                                              by=)
-b
+#R will usually automatically sort variables alphabetically, so the "limits" command here allows you to override that and manually specify the order of variables in the ggplot.
+
+b <- b + scale_y_continuous(breaks = seq(0.0, 0.12, 0.02)) 
+#seq() command specifies seq(to, from, by=)
+#scale_x_discrete and scale_y_continuous commands allow you to rename the variables on the x and y axis either as discrete (usually categorical) variables or a continuous series of numbers. t
+
+
+b #load the final product! 
 ```
 
 # Survival Analysis 
@@ -283,13 +301,15 @@ library(survival)
 library(survminer)
 ```
 
+use the curl command to reload the binomial data (if you didn't do so above)
 ```{r}
 p <- curl("https://raw.githubusercontent.com/butterfliesrcool/BI588_Replication_Assignment/main/Adelpha2016_binomial.csv")
 binomial.data  <- read.csv(p, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-binomial.data
 ```
 
-Soooo p-values are different but everything that is supposed to be significant is. This is an analysis that produces output similar to what she presents in the paper. In the paper, she also talks about how 15 observations were automatically eliminated by the software, but nothing is being automatically eliminated in my analysis, so this might also be contributing to the different p-values. 
+Within the package "Survival" we can use the function "Surv" to create a Survival object. We can then use the function "survfit" to generate percent survivorship for our four species across the four-day experiment. Finkbeiner reports overall survivorship as 94.0% for iphiclus, 89.6% for evarete, 88.8% for serpa, and 89.8% for leucopthalma. We can compare these survival scores to those generated through my replicated analysis by looking at the survival on the fourth day for each species in the output below. 
+
+As you can see, my survival scores are slightly different from those reported in the publication. Finkbeiner reports that when she ran her original survival analysis, fifteen observations were automatically eliminated by the software. My replicated analysis did not automatically eliminate any observations, which could explain why our results are slightly different.  This might be a product of updates made to the package in the 6 years between these two analyses. However, the overall pattern in survivorship holds true. 
 
 ```{r}
 model <- survfit(Surv(day, day+1, attacks) ~ species, data=binomial.data)
@@ -297,26 +317,58 @@ model
 summary(model)
 ```
 
+Finkbeiner also ran a Cox proportional-hazards regression model through the survival package, which is replicated below. As with the glm above, she reported pairwise comparisons between all species. To replicate this, I subsetted each pair and ran separate Cox proportional-hazards regression models for each. As mentioned above, my p-values do not match those of the original publication exactly, but this is likely due to the 15 eliminated observations. All comparisons that were reported as significant (p-value = <0.05) in the original publication are also significant in this replicated analysis. 
+
+```{r}
+coxph(Surv(day, day+1, attacks) ~ species, data=binomial.data)
+```
+
+Subset specific species pairwise comparisons from "binomial.data"
+```{r}
+ei <- subset(binomial.data, species %in% c("evarete", "iphiclus"), drop = FALSE)
+si <- subset(binomial.data, species %in% c("serpa", "iphiclus"), drop = FALSE)
+li <- subset(binomial.data, species %in% c("leucopthalma", "iphiclus"), drop = FALSE)
+le <- subset(binomial.data, species %in% c("leucopthalma", "evarete"), drop = FALSE)
+ls <- subset(binomial.data, species %in% c("leucopthalma", "serpa"), drop = FALSE)
+es <- subset(binomial.data, species %in% c("evarete", "serpa"), drop = FALSE)
+```
+
+evarete-iphiclus comparison (significant)
+```{r}
+coxph(Surv(day, day+1, attacks) ~ species, data=ei)
+```
+
+serpa-iphiclus comparison (significant)
+```{r}
+coxph(Surv(day, day+1, attacks) ~ species, data=si)
+```
+
+leucopthalma-iphiclus comparison (significant)
+```{r}
+coxph(Surv(day, day+1, attacks) ~ species, data=li)
+```
+
+leucopthalma-evarete comparison (not significant)
+```{r}
+coxph(Surv(day, day+1, attacks) ~ species, data=le)
+```
+
+leucopthalma-serpa comparison (not significant)
+```{r}
+coxph(Surv(day, day+1, attacks) ~ species, data=ls)
+```
+
+evarete-serpa comparison (not significant)
+```{r}
+coxph(Surv(day, day+1, attacks) ~ species, data=es)
+```
+
+While Finkbeiner did not report using the pairwise_survdiff() function in her publication, this is another possibly easier way to generate pairwise comparisons in the survival differences between species. 
+
 ```{r}
 survdiff(Surv(day, attacks) ~ species, data=binomial.data)
 pairwise_survdiff(Surv(day, attacks) ~ species, p.adjust.method = "BH",
      data = binomial.data)
-```
-
-```{r}
-coxph(Surv(day, attacks) ~ species, data=binomial.data)
-```
-
-I also found this code that should give me pairwise comparisons within the survival package but my R isn't recognizing surv.multcomp and I don't know why... 
-
-```
-install.packages('RVAideMemoire')
-library(RVAideMemoire)
-library(survival)
-library(survminer)
-library(multcomp)
-###soo R isn't recognizing the surv.multcomp function and I don't know why
-surv.multcomp(Surv(day, attacks) ~ species, data = data, strata = NULL, type = "coxph", p.method = "fdr")
 ```
 
 # Figure 1(B)
@@ -332,6 +384,7 @@ library(ggplot2)
 library(tayloRswift)
 ```
 
+We can plot the survfit model generated above in baseR using the function plot()
 ```{r}
 plot(model, xlab="Time (days)", 
            ylab="Survivorship",
@@ -339,33 +392,65 @@ plot(model, xlab="Time (days)",
            xlim = c(1, 5))
 ```
 
+If we want to get fancy, we can also plot this model using ggsurvplot()
+
 ```{r}
-p <- ggsurvplot(fit = model, 
+p <- ggsurvplot(fit = model,
            xaxt = "n",
            xlab="Time (days)", 
            ylab="Survivorship",
-           ylim = c(0.85, 1.0), 
+           ylim = c(0.86, 1.0), 
            xlim = c(1, 5),  
            data = binomial.data, 
            axes = FALSE, 
-           linetype = 1)
+           linetype = 1,
+           legend.labs = c("Junonia (control)", "A. iphiclus", "A. leucopthalma", "A. serpa"),
+           legend.title = "Species")
 
 ##use Red (Taylor's Version) color palette 
-p$plot <- p$plot + scale_color_taylor(palette = "lover")
+p$plot <- p$plot + scale_color_taylor(palette = "lover") 
+#set your favorite Taylor album as your color palette! Try "folklore" or "evermore" or "taylorRed"
+
 p$plot <- p$plot + theme_minimal()
-p$plot
+p$plot <- p$plot + theme_classic()
 
 ##rename the x axis values 
-p$plot <- p$plot + 
-                  scale_x_continuous(breaks = c(1,2,3,4,5),
-                                     labels = c(0,1,2,3,4))
+p$plot <- p$plot + scale_x_continuous(breaks = c(1,2,3,4,5), labels = c(0,1,2,3,4))
+
 p$plot
-
-
 ```
 
 
 # Challenges 
 1. One of my biggest challenges with this project was trying to figure out how to format the data for each analysis. Susan Finkbeiner uploaded the dataset to DataDryad, but it was not in a format that count be read into R, it was also uploaded as count data when all of the survival analyses performed in this publication required binomial data. 
 
+2. I also struggled with graphing the glm directly in ggplot, the figure in the paper reports attack rates, but the glm was performed on attack totals. This made it difficult to include error bars in the figure
+
 # Resources
+-http://www.sthda.com/english/wiki/ggplot2-themes-and-background-colors-the-3-elements
+
+-https://www.geeksforgeeks.org/change-color-of-bars-in-barchart-using-ggplot2-in-r/
+
+-http://sape.inf.usi.ch/quick-reference/ggplot2/colour
+
+-https://www.delftstack.com/howto/r/scale_y_continuous-in-r/
+
+-https://stackoverflow.com/questions/25061822/ggplot-geom-text-font-size-control/25062509
+
+-https://stackoverflow.com/questions/21234833/selecting-a-subset-where-a-categorical-variable-column-can-have-2-values
+
+-https://cran.r-project.org/web/packages/ggimage/ggimage.pdf
+
+-https://www.statology.org/r-add-a-column-to-dataframe/
+
+-https://stackoverflow.com/questions/56399019/how-to-manually-add-an-error-bar-95-ci-to-a-barplot
+
+-https://community.rstudio.com/t/how-to-get-r-to-maintain-the-order-of-variables-on-the-x-axis/31203/11
+
+-https://stackoverflow.com/questions/20620277/get-95-confidence-interval-with-glm-in-r
+
+-https://stackoverflow.com/questions/50546109/ggimage-custom-image-from-computer-rather-than-from-web
+
+-https://stackoverflow.com/questions/60764518/inserting-an-image-to-a-bar-chart-in-ggplot
+
+-https://rkabacoff.github.io/datavis/datavis.pdf
